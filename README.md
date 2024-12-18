@@ -1,16 +1,20 @@
-# Template Redmine Plugin
+# Redmine MCP Server
 
-## Tested Environment
+This plugin provides a Model Context Protocol Server using Server Side Event.
 
-* Redmine (Docker Image)
-  * 3.4
-  * 4.0
-  * 4.1
-  * 4.2
-  * 5.0
-  * 5.1
-  * 6.0
-* Database
-  * SQLite
-  * MySQL 5.7 or 8.0
-  * PostgreSQL 12
+## Notes
+
+- This plugin is concept and experimental.
+- HTTP endpoint does not have authenticate.
+
+## Features
+
+- Tool `list_issues` is all issue listed per project.
+
+## Exampls
+
+see [./clients] directory.
+
+## References
+
+- [Model Context Protocol](https://modelcontextprotocol.io/introduction)
