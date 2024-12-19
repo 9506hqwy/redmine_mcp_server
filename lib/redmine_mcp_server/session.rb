@@ -118,8 +118,12 @@ module RedmineMcpServer
     def mcp_tools_call(id, name, arguments)
       case name
       when "list_issues"
-        pages = call_list_issues(arguments)
+        pages = call_list_issues
         response = Message.call_tool_text_results(id, pages)
+        write_json(response)
+      when "read_issue"
+        issue = call_read_issue(arguments[:id])
+        response = Message.call_tool_text_results(id, [issue])
         write_json(response)
       end
     end
@@ -134,24 +138,37 @@ module RedmineMcpServer
       finish
     end
 
-    def call_list_issues(arguments)
+    def call_list_issues
       Issue.where(project: @project).map do |issue|
         JSON.dump({
+                    id: issue.id,
                     subject: issue.subject,
                     url: object_url(issue),
                   })
       end
     end
 
+    def call_read_issue(id)
+      issue = Issue.where(id: id, project: @project).first
+      JSON.dump(
+        {
+          id: issue.id,
+          tracker: issue.tracker.name,
+          subject: issue.subject,
+          description: issue.description,
+          due_date: issue.due_date,
+          category: issue.category,
+          status: issue.status.name,
+          assigned_to: issue.assigned_to&.name,
+        }
+      )
+    end
+
     def object_url(obj)
       options = { protocol: Setting.protocol }
       if Setting.host_name.to_s =~ /\A(https?:\/\/)?(.+?)(:(\d+))?(\/.+)?\z/i
         host, port, path = $2, $4, $5
-        options.merge!({
-                         host: host,
-                         port: port,
-                         script_name: path,
-                       })
+        options.merge!({host: host, port: port, script_name: path})
       else
         options[:host] = Setting.host_name
       end

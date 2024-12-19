@@ -53,8 +53,23 @@ module RedmineMcpServer
         }
       }
 
+      read_issue = {
+        name: "read_issue",
+        description: "Read issue in project.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Issue's id",
+            }
+          },
+          required: ["id"]
+        }
+      }
+
       result = {
-        tools: [list_issues],
+        tools: [list_issues, read_issue],
         nextCursor: nil,
       }
 

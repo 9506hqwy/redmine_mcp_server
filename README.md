@@ -10,6 +10,7 @@ This plugin provides a Model Context Protocol Server using Server Side Event.
 ## Features
 
 - Tool `list_issues` is all issue listed per project.
+- Tool `read_issue` is a issue read.
 
 ## Exampls
 
