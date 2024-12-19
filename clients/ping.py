@@ -6,7 +6,7 @@ from mcp.client.sse import sse_client
 
 
 async def main():
-    async with sse_client("http://127.0.0.1:3000/projects/test_project/event/sse") as (
+    async with sse_client("http://127.0.0.1:3000/projects/test_project/mcp/sse") as (
         read,
         write,
     ):

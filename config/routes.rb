@@ -2,7 +2,7 @@
 
 RedmineApp::Application.routes.draw do
   resources :projects do
-    get '/event/sse', to: 'event#sse', format: false
-    post '/event/messages', to: 'event#messages', format: false
+    get '/mcp/sse', to: 'mcp#sse', format: false
+    post '/mcp/messages', to: 'mcp#messages', format: false
   end
 end
