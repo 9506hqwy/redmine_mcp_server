@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+from mcp import ClientSession
+from mcp.client.sse import sse_client
+
+
+async def main():
+    async with sse_client("http://127.0.0.1:3000/projects/test_project/mcp/sse") as (
+        read,
+        write,
+    ):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+
+            res = await session.list_tools()
+            list_wiki_pages = (
+                t for t in res.tools if t.name == "list_wiki_pages"
+            ).__next__()
+
+            res = await session.call_tool(list_wiki_pages.name)
+            for page in res.content:
+                print(page.text)
+
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(main())

@@ -1,6 +1,6 @@
 # Redmine MCP Server
 
-This plugin provides a Model Context Protocol Server using Server Side Event.
+This plugin provides a Model Context Protocol server using Server Side Event.
 
 ## Notes
 
@@ -10,7 +10,9 @@ This plugin provides a Model Context Protocol Server using Server Side Event.
 ## Features
 
 - Tool `list_issues` is all issue listed per project.
+- Tool `list_wiki_pages` is all wiki page listed per project.
 - Tool `read_issue` is a issue read.
+- Tool `read_wiki_page` is a wiki page read.
 
 ## Exampls
 

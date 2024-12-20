@@ -118,12 +118,20 @@ module RedmineMcpServer
     def mcp_tools_call(id, name, arguments)
       case name
       when "list_issues"
-        pages = call_list_issues
+        issues = call_list_issues
+        response = Message.call_tool_text_results(id, issues)
+        write_json(response)
+      when "list_wiki_pages"
+        pages = list_wiki_pages
         response = Message.call_tool_text_results(id, pages)
         write_json(response)
       when "read_issue"
         issue = call_read_issue(arguments[:id])
         response = Message.call_tool_text_results(id, [issue])
+        write_json(response)
+      when "read_wiki_page"
+        page = call_read_wiki_page(arguments[:id])
+        response = Message.call_tool_text_results(id, [page])
         write_json(response)
       end
     end
@@ -148,6 +156,18 @@ module RedmineMcpServer
       end
     end
 
+    def list_wiki_pages
+      WikiPage.joins(:wiki).where(wiki: {project: @project}).map do |page|
+        JSON.dump(
+          {
+            id: page.id,
+            title: page.title,
+            url: object_url(page),
+          }
+        )
+      end
+    end
+
     def call_read_issue(id)
       issue = Issue.where(id: id, project: @project).first
       JSON.dump(
@@ -160,6 +180,20 @@ module RedmineMcpServer
           category: issue.category,
           status: issue.status.name,
           assigned_to: issue.assigned_to&.name,
+        }
+      )
+    end
+
+    def call_read_wiki_page(id)
+      page = WikiPage.joins(:wiki).where(id: id, wiki: {project: @project}).first
+      content = WikiContent.where(page: page).first
+      JSON.dump(
+        {
+          id: page.id,
+          title: page.title,
+          author: content.author&.name,
+          text: content.text,
+          version: content.version,
         }
       )
     end

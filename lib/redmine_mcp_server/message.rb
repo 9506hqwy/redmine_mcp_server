@@ -53,6 +53,14 @@ module RedmineMcpServer
         }
       }
 
+      list_wiki_pages = {
+        name: "list_wiki_pages",
+        description: "List all wiki pages in project.",
+        inputSchema: {
+          type: "object",
+        }
+      }
+
       read_issue = {
         name: "read_issue",
         description: "Read issue in project.",
@@ -68,8 +76,23 @@ module RedmineMcpServer
         }
       }
 
+      read_wiki_page = {
+        name: "read_wiki_page",
+        description: "Read wiki page in project.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            id: {
+              type: "integer",
+              description: "Wiki's id",
+            }
+          },
+          required: ["id"]
+        }
+      }
+
       result = {
-        tools: [list_issues, read_issue],
+        tools: [list_issues, list_wiki_pages, read_issue, read_wiki_page],
         nextCursor: nil,
       }
 
