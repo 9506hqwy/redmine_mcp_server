@@ -3,8 +3,8 @@
 basedir = File.expand_path('lib', __dir__)
 libraries =
   [
+    'redmine_mcp_server/message',
     'redmine_mcp_server/session',
-
   ]
 
 libraries.each do |library|
