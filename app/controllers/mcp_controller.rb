@@ -7,7 +7,9 @@ class McpController < ApplicationController
 
   before_action :find_project_by_project_id
 
+  # rubocop:disable Style/ClassVars
   @@sessions = {}
+  # rubocop:enable Style/ClassVars
 
   def sse
     response.headers['Content-Type'] = 'text/event-stream'

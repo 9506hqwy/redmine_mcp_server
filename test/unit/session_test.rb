@@ -57,7 +57,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_equal res, {
       jsonrpc: "2.0",
       id: "1",
@@ -109,7 +109,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_equal res, {
       jsonrpc: "2.0",
       id: "1",
@@ -133,7 +133,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_equal res, RedmineMcpServer::Message.tools_list("2")
   ensure
     s.close
@@ -153,7 +153,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_not_nil res
   ensure
     s.close
@@ -169,7 +169,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_not_nil res
   ensure
     s.close
@@ -185,7 +185,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_not_nil res
   ensure
     s.close
@@ -201,7 +201,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_not_nil res
   ensure
     s.close
@@ -217,7 +217,7 @@ class SessionTest <  ActiveSupport::TestCase
     w.rewind
     assert_equal "event: message", w.readline(chomp: true)
 
-    res = JSON.parse(w.readline.delete_prefix("data: "), symbolize_names: true)
+    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
     assert_not_nil res
   ensure
     s.close

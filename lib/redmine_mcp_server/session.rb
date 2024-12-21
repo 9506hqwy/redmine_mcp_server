@@ -157,7 +157,7 @@ module RedmineMcpServer
     end
 
     def list_wiki_pages
-      WikiPage.joins(:wiki).where(wiki: {project: @project}).map do |page|
+      WikiPage.joins(:wiki).where(wikis: {project_id: @project.id}).map do |page|
         JSON.dump(
           {
             id: page.id,
@@ -185,7 +185,7 @@ module RedmineMcpServer
     end
 
     def call_read_wiki_page(id)
-      page = WikiPage.joins(:wiki).where(id: id, wiki: {project: @project}).first
+      page = WikiPage.joins(:wiki).where(id: id, wikis: {project_id: @project.id}).first
       content = WikiContent.where(page: page).first
       JSON.dump(
         {
