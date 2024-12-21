@@ -18,6 +18,15 @@ This plugin provides a Model Context Protocol server using Server Side Event.
 
 see [./clients] directory.
 
+## Tested Environment
+
+* Redmine (Docker Image)
+  * 6.0
+* Database
+  * SQLite
+  * MySQL 8.0
+  * PostgreSQL 12
+
 ## References
 
 - [Model Context Protocol](https://modelcontextprotocol.io/introduction)

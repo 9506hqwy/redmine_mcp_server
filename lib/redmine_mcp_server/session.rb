@@ -14,7 +14,7 @@ module RedmineMcpServer
     STATE_ACCEPTABLE = 2
     STATE_CLOSED = 3
 
-    attr_reader :id
+    attr_reader :id, :status
 
     def initialize(stream, project)
       super()

@@ -36,7 +36,7 @@ module RedmineMcpServer
           }
         },
         serverInfo: {
-          name: "RedmineMspServer",
+          name: "RedmineMcpServer",
           version: "0.1.0"
         }
       }
