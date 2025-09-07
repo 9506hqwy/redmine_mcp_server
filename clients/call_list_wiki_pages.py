@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# /// script
+# dependencies = ["mcp"]
+# requires-python = ">=3.11"
+# ///
+
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 

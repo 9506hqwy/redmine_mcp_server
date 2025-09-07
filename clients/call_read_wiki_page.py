@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# /// script
+# dependencies = ["mcp"]
+# requires-python = ">=3.11"
+# ///
+
 import json
 
 from mcp import ClientSession

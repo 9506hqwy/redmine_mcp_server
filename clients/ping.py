@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+# /// script
+# dependencies = ["mcp"]
+# requires-python = ">=3.11"
+# ///
+
 import asyncio
 
 from mcp import ClientSession
