@@ -19,9 +19,11 @@ This plugin provides a Model Context Protocol server using Server Side Event.
 ## Installation
 
 1. Download plugin in Redmine plugin directory.
+
    ```sh
    git clone https://github.com/9506hqwy/redmine_mcp_server.git
    ```
+
 2. Start Redmine
 
 ## Exampls
@@ -30,12 +32,12 @@ see [clients](./clients) directory.
 
 ## Tested Environment
 
-* Redmine (Docker Image)
-  * 6.0
-* Database
-  * SQLite
-  * MySQL 8.0
-  * PostgreSQL 12
+- Redmine (Docker Image)
+  - 6.0
+- Database
+  - SQLite
+  - MySQL 8.0
+  - PostgreSQL 14
 
 ## References
 
