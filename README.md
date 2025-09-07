@@ -5,6 +5,7 @@ This plugin provides a Model Context Protocol server using Server Side Event.
 ## Notes
 
 - This plugin is concept and experimental.
+- This plugin uses protocol version 2024-11-05.
 - HTTP endpoint does not have authenticate.
 - Using WEBrick does not work (see [12.3.3 Streaming Considerations](https://guides.rubyonrails.org/v4.2/action_controller_overview.html)).
 - `ActionController:Live` streaming has some problems depend on depnedencies library's version (see [Version 2.2.x breaks Rails Actioncontroller:Live streaming](https://github.com/rack/rack/issues/1619)).
@@ -42,3 +43,4 @@ see [clients](./clients) directory.
 ## References
 
 - [Model Context Protocol](https://modelcontextprotocol.io/introduction)
+- [MCP Server](https://www.redmine.org/issues/42689)
