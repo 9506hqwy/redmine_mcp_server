@@ -35,6 +35,7 @@ see [clients](./clients) directory.
 
 - Redmine (Docker Image)
   - 6.0
+  - 6.1
 - Database
   - SQLite
   - MySQL 8.0
