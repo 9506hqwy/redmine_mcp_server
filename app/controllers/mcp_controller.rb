@@ -1,47 +1,94 @@
 # frozen_string_literal: true
 
+# TODO: Check Origin header
+
 class McpController < ApplicationController
-  include ActionController::Live
+  protect_from_forgery except: [:handle, :terminate]
 
-  protect_from_forgery except: :messages
+  before_action :valid_accept_header,
+                :valid_version_header,
+                :find_project_by_project_id
+  before_action :parse_jsonrpc_request, only: :handle
+  before_action :find_or_create_session_by_header, only: [:handle, :terminate]
 
-  before_action :find_project_by_project_id
+  def handle
+    res = @session.handle(@jsonrpc)
 
-  # rubocop:disable Style/ClassVars
-  @@sessions = {}
-  # rubocop:enable Style/ClassVars
+    if @initialize
+      response.headers['MCP-Session-Id'] = @session.id
+    end
 
-  def sse
-    response.headers['Content-Type'] = 'text/event-stream'
-    response.headers['Last-Modified'] = Time.now.httpdate
-
-    session = RedmineMcpServer::Session.new(response.stream, @project)
-    @@sessions[session.id] = session
-    Rails.logger.info("Registered SSE #{session.id}.")
-
-    endpoint = url_for(controller: :mcp, action: :messages, only_path: true, params: {session_id: session.id})
-    session.open(endpoint)
-
-    session.wait_for_finished
-  ensure
-    @@sessions.delete(session.id)
-    Rails.logger.info("Unregistered SSE #{session.id}.")
-    session.close
+    if res == ""
+      render_api_head(:accepted)
+    else
+      render_api(:ok, res)
+    end
   end
 
-  def messages
-    session_id = params[:session_id]
-    return render(plain: 'Bad Request', status: :bad_request) unless session_id
+  def notify
+    render_api_head(:method_not_allowed)
+  end
 
-    session = @@sessions[session_id]
-    return render(plain: 'Bad Request', status: :bad_request) unless session
+  def terminate
+    @session.close
 
-    req = JSON.parse(request.body.read, symbolize_names: true)
-    session.handle(req)
+    render_api_head(:ok)
+  end
 
-    render(plain: 'Accepted', status: :accepted)
+  def valid_accept_header
+    accepts = request.headers["Accept"]
+    if contains_value(accepts, "application/json")
+      # Support
+    elsif contains_value(accepts, "text/event-stream")
+      render_api_head(:method_not_allowed)
+    else
+      render_api_head(:bad_request)
+    end
+  end
+
+  def valid_version_header
+    version = request.headers["MCP-Protocol-Version"]
+    if version && version != RedmineMcpServer::Message::PROTOCOL_VERSION
+      render_api_head(status: :bad_request)
+      return
+    end
+  end
+
+  def parse_jsonrpc_request
+    @jsonrpc = JSON.parse(request.body.read, symbolize_names: true)
+    @initialize = @jsonrpc[:method] == "initialize"
   rescue JSON::ParserError => e
     Rails.logger.error(e)
-    render(plain: 'Bad Request', status: :bad_request)
+    error = RedmineMcpServer::Message.err_parse
+    render_api(:bad_request, error)
+  end
+
+  def find_or_create_session_by_header
+    @session = nil
+
+    if @initialize
+      @session = RedmineMcpServer::Session.new(@project, 180)
+    else
+      session_id = request.headers["MCP-Session-Id"]
+      @session = RedmineMcpServer::Session.get(session_id) if session_id
+
+      if session_id.nil?
+        error = RedmineMcpServer::Message.err_invalid_request(@jsonrpc[:id])
+        render_api(:bad_request, error)
+      elsif @session.nil?
+        error = RedmineMcpServer::Message.err_generic(@jsonrpc[:id])
+        render_api(:not_found, error)
+      else
+        @session.extend_expire_time
+      end
+    end
+  end
+
+  def contains_value(values, value)
+    values.split(",").map{|a| a.strip}.include?(value)
+  end
+
+  def render_api(status, content)
+    render(json: content, status: status, content_type: "application/json")
   end
 end

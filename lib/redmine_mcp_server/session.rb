@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
 require 'json'
-require 'monitor'
 require 'securerandom'
 
 module RedmineMcpServer
   class Session
-    include MonitorMixin
     include Rails.application.routes.url_helpers
+
+    # rubocop:disable Style/ClassVars
+    @@sessions = {}
+    # rubocop:enable Style/ClassVars
 
     STATE_NOT_INITIALIZE = 0
     STATE_INITIALIZING = 1
@@ -16,56 +18,50 @@ module RedmineMcpServer
 
     attr_reader :id, :status
 
-    def initialize(stream, project)
+    def self.get(id)
+      @@sessions[id]
+    end
+
+    def initialize(project, timeout)
       super()
       @id = SecureRandom.uuid
-      @sse = ActionController::Live::SSE.new(stream, event: "message")
       @project = project
 
-      @cv = new_cond
+      @timeout = timeout
+      @expired = expire_time(@timeout)
 
       @status = STATE_NOT_INITIALIZE
 
-      @iniializing = Thread.new do
-        # call `finish` after few seconds without initializing.
-        sleep(5)
-        if @status < STATE_ACCEPTABLE
-          finish
-        end
+      @watcher = Thread.new do
+        sleep(1) while Time.now < @expired
+
+        finish
       end
 
-      @pinger = Thread.new do
-        # check TCP connection periodically.
-        while @status < STATE_CLOSED
-          sleep(15)
-          if @status == STATE_ACCEPTABLE
-            mcp_ping
-          end
-        end
-      end
-    end
-
-    def open(endpoint)
-      @sse.write(endpoint, event: "endpoint")
-    end
-
-    def close
-      @sse.close
-      @iniializing.kill
-      @pinger.kill
-    end
-
-    def wait_for_finished
-      synchronize do
-        @cv.wait
-      end
+      @@sessions[@id] = self
+      Rails.logger.info("Registered Session #{@id}.")
     end
 
     def finish
-      synchronize do
-        @status = STATE_CLOSED
-        @cv.broadcast
-      end
+      @status = STATE_CLOSED
+
+      @@sessions.delete(@id)
+      Rails.logger.info("Unregistered Session #{@id} (#{@expired}).")
+    end
+
+    def extend_expire_time
+      @expired = expire_time(@timeout)
+      Rails.logger.info("Extended Session #{@id} (#{@expired}).")
+    end
+
+    def expire_time(sec)
+      Time.now + sec
+    end
+
+    def close
+      @watcher.kill
+
+      finish
     end
 
     def handle(request)
@@ -82,7 +78,7 @@ module RedmineMcpServer
       when "tools/call"
         mcp_tools_call(request[:id], request[:params][:name], request[:params][:arguments])
       else
-        write_json(request)
+        Message.err_method_not_found(request[:id])
       end
     end
 
@@ -92,58 +88,36 @@ module RedmineMcpServer
       Rails.logger.info(capabilities)
       Rails.logger.info(client_info)
 
-      response = Message.initialize_result(id, protocol_version)
-      write_json(response)
+      Message.initialize_result(id, protocol_version)
     end
 
     def mcp_initialized
       @status = STATE_ACCEPTABLE
     end
 
-    def mcp_ping
-      json = Message.ping(SecureRandom.uuid)
-      write_json(json)
-    end
-
     def mcp_pong(id)
-      response = Message.pong(id)
-      write_json(response)
+      Message.pong(id)
     end
 
     def mcp_tools_list(id)
-      json = Message.tools_list(id)
-      write_json(json)
+      Message.tools_list(id)
     end
 
     def mcp_tools_call(id, name, arguments)
       case name
       when "list_issues"
         issues = call_list_issues
-        response = Message.call_tool_text_results(id, issues)
-        write_json(response)
+        Message.call_tool_text_results(id, issues)
       when "list_wiki_pages"
         pages = list_wiki_pages
-        response = Message.call_tool_text_results(id, pages)
-        write_json(response)
+        Message.call_tool_text_results(id, pages)
       when "read_issue"
         issue = call_read_issue(arguments[:id])
-        response = Message.call_tool_text_results(id, [issue])
-        write_json(response)
+        Message.call_tool_text_results(id, [issue])
       when "read_wiki_page"
         page = call_read_wiki_page(arguments[:id])
-        response = Message.call_tool_text_results(id, [page])
-        write_json(response)
+        Message.call_tool_text_results(id, [page])
       end
-    end
-
-    def write_json(json)
-      write_plain(json.to_json)
-    end
-
-    def write_plain(data)
-      @sse.write(data)
-    rescue ActionController::Live::ClientDisconnected
-      finish
     end
 
     def call_list_issues

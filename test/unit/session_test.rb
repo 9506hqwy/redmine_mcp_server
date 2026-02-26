@@ -23,9 +23,8 @@ class SessionTest <  ActiveSupport::TestCase
            :wikis
 
   def test_initialize_close
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
     assert_not_nil s.id
     assert_equal s.status, RedmineMcpServer::Session::STATE_NOT_INITIALIZE
@@ -34,11 +33,10 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def test_initialize_timedout
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 0.3)
 
-    s.wait_for_finished
+    sleep(2)
 
     assert_equal s.status, RedmineMcpServer::Session::STATE_CLOSED
   ensure
@@ -46,19 +44,13 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def test_handle_initialize
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(initialize_request)
+    data = s.handle(initialize_request)
 
     assert_equal s.status, RedmineMcpServer::Session::STATE_INITIALIZING
-
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_equal res, {
+    assert_equal data, {
       jsonrpc: "2.0",
       id: "1",
       result: {
@@ -79,38 +71,23 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def test_handle_initialized
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
-
-    s.handle(initialize_request)
-    w.string = (+"")
-    w.rewind
+    s = RedmineMcpServer::Session.new(p, 10)
 
     s.handle({jsonrpc: "2.0", method: "notifications/initialized"})
 
     assert_equal s.status, RedmineMcpServer::Session::STATE_ACCEPTABLE
-    assert_equal 0, w.tell
   ensure
     s.close
   end
 
   def test_handle_pong
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(initialize_request)
-    w.string = (+"")
-    w.rewind
+    data = s.handle(RedmineMcpServer::Message.ping("1"))
 
-    s.handle(RedmineMcpServer::Message.ping("1"))
-
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_equal res, {
+    assert_equal data, {
       jsonrpc: "2.0",
       id: "1",
       result: {},
@@ -120,105 +97,67 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def test_handle_tools_list
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(initialize_request)
-    w.string = (+"")
-    w.rewind
+    data = s.handle(tools_list_request)
 
-    s.handle(tools_list_request)
-
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_equal res, RedmineMcpServer::Message.tools_list("2")
+    assert_equal data, RedmineMcpServer::Message.tools_list("2")
   ensure
     s.close
   end
 
   def test_handle_tools_call
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(initialize_request)
-    w.string = (+"")
-    w.rewind
+    data = s.handle(tools_call_request)
 
-    s.handle(tools_call_request)
-
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_not_nil res
+    assert_not_nil data
   ensure
     s.close
   end
 
   def test_mcp_tools_call_list_issues
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(tools_call_request)
+    data = s.handle(tools_call_request)
 
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_not_nil res
+    assert_not_nil data
   ensure
     s.close
   end
 
   def test_mcp_tools_call_list_wiki_pages
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(list_wiki_pages_request)
+    data = s.handle(list_wiki_pages_request)
 
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_not_nil res
+    assert_not_nil data
   ensure
     s.close
   end
 
   def test_mcp_tools_call_read_issue
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(read_issue_request)
+    data = s.handle(read_issue_request)
 
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_not_nil res
+    assert_not_nil data
   ensure
     s.close
   end
 
   def test_mcp_tools_call_read_wiki_page
-    w = StringIO.new
     p = Project.first
-    s = RedmineMcpServer::Session.new(w, p)
+    s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle(read_wiki_page_request)
+    data = s.handle(read_wiki_page_request)
 
-    w.rewind
-    assert_equal "event: message", w.readline(chomp: true)
-
-    res = JSON.parse(w.readline.gsub(/^data: /, ""), symbolize_names: true)
-    assert_not_nil res
+    assert_not_nil data
   ensure
     s.close
   end

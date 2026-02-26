@@ -15,7 +15,7 @@ Redmine::Plugin.register :redmine_mcp_server do
   name 'MCP Server Plugin'
   author '9506hqwy'
   description 'This is a Model Context Protocol server for Redmine'
-  version '0.1.0'
+  version '0.2.0'
   url 'https://github.com/9506hqwy/redmine_mcp_server'
   author_url 'https://github.com/9506hqwy'
 end

@@ -3,7 +3,13 @@
 module RedmineMcpServer
   module Message
     JSONRPC_VERSION = "2.0"
-    PROTOCOL_VERSION = "2024-11-05"
+    JSONRPC_ERR_PARSE = -32700
+    JSONRPC_ERR_INVALID_REQUEST = -32600
+    JSONRPC_ERR_METHOD_NOT_FOUND = -32601
+    JSONRPC_ERR_INVALID_PARAMS = -32602
+    JSONRPC_ERR_INTERNAL = -32603
+    JSONRPC_ERR_GENERIC = 0
+    PROTOCOL_VERSION = "2025-11-25"
 
     def self.request(method)
       {
@@ -17,6 +23,43 @@ module RedmineMcpServer
         jsonrpc: JSONRPC_VERSION,
         id: id,
       }
+    end
+
+    def self.error(id, code, message, data)
+      err = {
+        jsonrpc: JSONRPC_VERSION
+      }
+
+      if id
+        err[:id] = id
+      end
+
+      err[:error] = {
+        code: code,
+        message: message
+      }
+
+      if data
+        err[:error][:data] = data
+      end
+
+      err
+    end
+
+    def self.err_parse
+      self.error(nil, JSONRPC_ERR_PARSE, "Parse error", nil)
+    end
+
+    def self.err_invalid_request(id)
+      self.error(id, JSONRPC_ERR_INVALID_REQUEST, "Invalid Request", nil)
+    end
+
+    def self.err_method_not_found(id)
+      self.error(id, JSONRPC_ERR_METHOD_NOT_FOUND, "Method not found", nil)
+    end
+
+    def self.err_generic(id)
+      self.error(id, JSONRPC_ERR_GENERIC, "Generic error", nil)
     end
 
     def self.ping(id)

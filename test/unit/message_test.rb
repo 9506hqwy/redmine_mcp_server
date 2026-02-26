@@ -13,6 +13,26 @@ class MessageTest <  ActiveSupport::TestCase
     assert_equal req, { jsonrpc: "2.0", id: "1" }
   end
 
+  def test_err_parse
+    req = RedmineMcpServer::Message.err_parse
+    assert_equal req, { jsonrpc: "2.0", error: { code: -32700, message: "Parse error" } }
+  end
+
+  def test_err_invalid_request
+    req = RedmineMcpServer::Message.err_invalid_request(1)
+    assert_equal req, { jsonrpc: "2.0", id: 1, error: { code: -32600, message: "Invalid Request" } }
+  end
+
+  def test_err_method_not_found
+    req = RedmineMcpServer::Message.err_method_not_found(2)
+    assert_equal req, { jsonrpc: "2.0", id: 2, error: { code: -32601, message: "Method not found" } }
+  end
+
+  def test_err_generic
+    req = RedmineMcpServer::Message.err_generic(3)
+    assert_equal req, { jsonrpc: "2.0", id: 3, error: { code: 0, message: "Generic error" } }
+  end
+
   def test_ping
     req = RedmineMcpServer::Message.ping("1")
     assert_equal req, { jsonrpc: "2.0", method: "ping", id: "1" }

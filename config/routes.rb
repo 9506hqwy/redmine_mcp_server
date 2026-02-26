@@ -2,7 +2,8 @@
 
 RedmineApp::Application.routes.draw do
   resources :projects do
-    get '/mcp/sse', to: 'mcp#sse', format: false
-    post '/mcp/messages', to: 'mcp#messages', format: false
+    post '/mcp', to: 'mcp#handle', format: false
+    get '/mcp', to: 'mcp#notify', format: false
+    delete '/mcp', to: 'mcp#terminate', format: false
   end
 end

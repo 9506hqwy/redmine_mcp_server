@@ -7,13 +7,14 @@
 import asyncio
 
 from mcp import ClientSession
-from mcp.client.sse import sse_client
+from mcp.client.streamable_http import streamable_http_client
 
 
 async def main():
-    async with sse_client("http://127.0.0.1:3000/projects/test_project/mcp/sse") as (
+    async with streamable_http_client("http://127.0.0.1:3000/projects/test-project/mcp") as (
         read,
         write,
+        _,
     ):
         async with ClientSession(read, write) as session:
             await session.initialize()
