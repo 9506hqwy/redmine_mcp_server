@@ -1,0 +1,36 @@
+info:
+  name: 001-accept-is-missing
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: Accept
+      value:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

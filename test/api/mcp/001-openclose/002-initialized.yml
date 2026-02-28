@@ -1,0 +1,30 @@
+info:
+  name: 002-initialized
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "method": "notifications/initialized"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "202"
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true

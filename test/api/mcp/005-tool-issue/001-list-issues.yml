@@ -1,0 +1,53 @@
+info:
+  name: 001-list-issues
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/call",
+        "params": {
+          "name": "list_issues"
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("test result", function () {
+          const resultText = res.body.result.content[0].text;
+          const result = JSON.parse(resultText);
+          expect(result).to.have.property("id");
+          expect(result).to.have.property("subject");
+          expect(result).to.have.property("url");
+
+          bru.setVar("issueId", result.id)
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: eq
+      value: application/json
+    - expression: res.body.id
+      operator: eq
+      value: "1"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

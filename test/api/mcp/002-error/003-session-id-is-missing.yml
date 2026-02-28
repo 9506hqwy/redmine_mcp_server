@@ -1,0 +1,38 @@
+info:
+  name: 003-session-id-is-missing
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+    - expression: res.body.id
+      operator: eq
+      value: "1"
+    - expression: res.body.error.code
+      operator: eq
+      value: "-32600"
+    - expression: res.body.error.message
+      operator: eq
+      value: Invalid Request
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

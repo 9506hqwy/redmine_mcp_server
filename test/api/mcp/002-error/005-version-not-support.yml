@@ -1,0 +1,36 @@
+info:
+  name: 005-version-not-support
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+    - name: MCP-Protocol-Version
+      value: 0000-00-00
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

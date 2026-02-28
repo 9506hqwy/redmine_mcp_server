@@ -21,3 +21,6 @@ popd
 npm install
 npx playwright install-deps
 npx playwright install
+
+# Install Bruno CLI
+npm install -g @usebruno/cli

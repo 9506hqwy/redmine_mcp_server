@@ -1,0 +1,23 @@
+info:
+  name: 003-delete
+  type: http
+  seq: 3
+
+http:
+  method: DELETE
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true

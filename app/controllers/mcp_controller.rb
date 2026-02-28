@@ -18,10 +18,10 @@ class McpController < ApplicationController
       response.headers['MCP-Session-Id'] = @session.id
     end
 
-    if res == ""
-      render_api_head(:accepted)
-    else
+    if res
       render_api(:ok, res)
+    else
+      render_api_head(:accepted)
     end
   end
 
@@ -49,13 +49,13 @@ class McpController < ApplicationController
   def valid_version_header
     version = request.headers["MCP-Protocol-Version"]
     if version && version != RedmineMcpServer::Message::PROTOCOL_VERSION
-      render_api_head(status: :bad_request)
-      return
+      render_api_head(:bad_request)
     end
   end
 
   def parse_jsonrpc_request
-    @jsonrpc = JSON.parse(request.body.read, symbolize_names: true)
+    body = request.body.read.chomp("\"")
+    @jsonrpc = JSON.parse(body, symbolize_names: true)
     @initialize = @jsonrpc[:method] == "initialize"
   rescue JSON::ParserError => e
     Rails.logger.error(e)
@@ -73,10 +73,10 @@ class McpController < ApplicationController
       @session = RedmineMcpServer::Session.get(session_id) if session_id
 
       if session_id.nil?
-        error = RedmineMcpServer::Message.err_invalid_request(@jsonrpc[:id])
+        error = RedmineMcpServer::Message.err_invalid_request(@jsonrpc&.[](:id))
         render_api(:bad_request, error)
       elsif @session.nil?
-        error = RedmineMcpServer::Message.err_generic(@jsonrpc[:id])
+        error = RedmineMcpServer::Message.err_generic(@jsonrpc&.[](:id))
         render_api(:not_found, error)
       else
         @session.extend_expire_time
@@ -89,6 +89,7 @@ class McpController < ApplicationController
   end
 
   def render_api(status, content)
-    render(json: content, status: status, content_type: "application/json")
+    response.headers['Content-Type'] = "application/json"
+    render(json: content, status: status)
   end
 end

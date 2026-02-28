@@ -1,0 +1,41 @@
+info:
+  name: 001-ping
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: eq
+      value: application/json
+    - expression: res.body.id
+      operator: eq
+      value: "1"
+    - expression: res.body.result.tools
+      operator: length
+      value: "4"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

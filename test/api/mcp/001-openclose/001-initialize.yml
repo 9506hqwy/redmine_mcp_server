@@ -1,0 +1,49 @@
+info:
+  name: 001-initialize
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 0,
+        "method": "initialize",
+        "params": {
+          "protocolVersion": "2025-11-25"
+        }
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: eq
+      value: "application/json"
+    - expression: res.headers['mcp-session-id']
+      operator: isNotEmpty
+    - expression: res.body.id
+      operator: eq
+      value: "0"
+    - expression: res.body.result.protocolVersion
+      operator: eq
+      value: "2025-11-25"
+  actions:
+    - type: set-variable
+      phase: after-response
+      selector:
+        expression: res.headers['mcp-session-id']
+        method: "jsonq"
+      variable:
+        name: sessionId
+        scope: folder
+
+settings:
+  encodeUrl: true

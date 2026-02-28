@@ -1,0 +1,57 @@
+info:
+  name: 004-list-tools
+  type: folder
+  seq: 4
+
+request:
+  auth: inherit
+  scripts:
+    - type: before-request
+      code: |-
+        const headers = {
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        };
+
+        const initReq = {
+          "jsonrpc": "2.0",
+          "id": 0,
+          "method": "initialize",
+          "params": {
+            "protocolVersion": "2025-11-25"
+          }
+        };
+
+        await bru.sendRequest({
+          method: "POST",
+          url: bru.getFolderVar("targetUrl"),
+          headers: headers,
+          data: initReq
+        }, function(err, res) {
+          if (err) {
+            console.error('Error:', err);
+            return;
+          }
+
+          // Use runtime variables.
+          // https://github.com/usebruno/bruno/discussions/4099
+          bru.setVar("sessionId", res.headers["mcp-session-id"]);
+        });
+    - type: after-response
+      code: |-
+        const headers = {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "MCP-Session-ID": bru.getVar("sessionId")
+        };
+
+        await bru.sendRequest({
+          method: "DELETE",
+          url: bru.getFolderVar("targetUrl"),
+          headers: headers
+        }, function (err, res) {
+          if (err) {
+            console.error('Error:', err);
+            return;
+          }
+        });

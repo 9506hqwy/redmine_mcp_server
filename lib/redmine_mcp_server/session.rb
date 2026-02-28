@@ -93,6 +93,7 @@ module RedmineMcpServer
 
     def mcp_initialized
       @status = STATE_ACCEPTABLE
+      return
     end
 
     def mcp_pong(id)

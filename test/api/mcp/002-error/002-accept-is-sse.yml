@@ -1,0 +1,36 @@
+info:
+  name: 002-accept-is-sse
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: Accept
+      value: text/event-stream
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "405"
+    - expression: res.body
+      operator: isEmpty
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

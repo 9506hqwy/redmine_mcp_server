@@ -1,0 +1,41 @@
+info:
+  name: 004-session-not-found
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: unknown
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "tools/list"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+    - expression: res.body.id
+      operator: eq
+      value: "1"
+    - expression: res.body.error.code
+      operator: eq
+      value: "0"
+    - expression: res.body.error.message
+      operator: eq
+      value: Generic error
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

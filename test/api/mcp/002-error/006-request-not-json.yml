@@ -1,0 +1,33 @@
+info:
+  name: 006-request-not-json
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: text
+    data: a
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+    - expression: res.body.error.code
+      operator: eq
+      value: "-32700"
+    - expression: res.body.error.message
+      operator: eq
+      value: Parse error
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

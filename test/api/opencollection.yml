@@ -1,0 +1,25 @@
+opencollection: 1.0.0
+
+info:
+  name: api
+config:
+  proxy:
+    inherit: false
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+    disabled: true
+
+request:
+  variables:
+    - name: serverName
+      value: 127.0.0.1
+    - name: serverPort
+      value: "3000"
+bundled: false
+extensions: {}

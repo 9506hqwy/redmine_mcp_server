@@ -1,0 +1,19 @@
+info:
+  name: mcp
+  type: folder
+  seq: 1
+
+request:
+  headers:
+    - name: Accept
+      value: application/json
+    - name: Content-Type
+      value: application/json
+  auth: inherit
+  variables:
+    - name: projectId
+      value: test-project
+    - name: targetUrl
+      value: http://{{serverName}}:{{serverPort}}/projects/{{projectId}}/mcp
+    - name: sessionId
+      value:

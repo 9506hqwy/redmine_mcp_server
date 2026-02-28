@@ -1,0 +1,59 @@
+info:
+  name: 002-read-issue
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/call",
+        "params": {
+          "name": "read_issue",
+          "arguments": {
+            "id": {{issueId}}
+          }
+        }
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: tests
+      code: |-
+        test("test result", function () {
+          const resultText = res.body.result.content[0].text;
+          const result = JSON.parse(resultText);
+          expect(result).to.have.property("id");
+          expect(result).to.have.property("tracker");
+          expect(result).to.have.property("subject");
+          expect(result).to.have.property("description");
+          expect(result).to.have.property("due_date");
+          expect(result).to.have.property("category");
+          expect(result).to.have.property("status");
+          expect(result).to.have.property("assigned_to");
+        });
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.headers['content-type']
+      operator: eq
+      value: application/json
+    - expression: res.body.id
+      operator: eq
+      value: "2"
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

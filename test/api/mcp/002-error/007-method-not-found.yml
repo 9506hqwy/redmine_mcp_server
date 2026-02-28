@@ -1,0 +1,41 @@
+info:
+  name: 007-method-not-found
+  type: http
+  seq: 7
+
+http:
+  method: POST
+  url: "{{targetUrl}}"
+  headers:
+    - name: MCP-Session-ID
+      value: "{{sessionId}}"
+  body:
+    type: json
+    data: |-
+      {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "unknown"
+      }
+  auth: inherit
+
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+    - expression: res.body.id
+      operator: eq
+      value: "1"
+    - expression: res.body.error.code
+      operator: eq
+      value: "-32601"
+    - expression: res.body.error.message
+      operator: eq
+      value: Method not found
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
