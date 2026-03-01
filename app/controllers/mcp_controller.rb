@@ -78,8 +78,6 @@ class McpController < ApplicationController
       elsif @session.nil?
         error = RedmineMcpServer::Message.err_generic(@jsonrpc&.[](:id))
         render_api(:not_found, error)
-      else
-        @session.extend_expire_time
       end
     end
   end

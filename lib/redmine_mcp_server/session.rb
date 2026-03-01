@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'json'
+require 'monitor'
 require 'securerandom'
 
 module RedmineMcpServer
@@ -9,6 +10,19 @@ module RedmineMcpServer
 
     # rubocop:disable Style/ClassVars
     @@sessions = {}
+    @@sessions.extend(MonitorMixin)
+
+    @@watcher = Thread.new do
+      loop do
+        sleep(1)
+
+        @@sessions.synchronize do
+          @@sessions.each_value do |s|
+            s.finish if s.expired < Time.now
+          end
+        end
+      end
+    end
     # rubocop:enable Style/ClassVars
 
     STATE_NOT_INITIALIZE = 0
@@ -16,10 +30,17 @@ module RedmineMcpServer
     STATE_ACCEPTABLE = 2
     STATE_CLOSED = 3
 
-    attr_reader :id, :status
+    attr_reader :id, :status, :expired
 
     def self.get(id)
-      @@sessions[id]
+      s = nil
+
+      @@sessions.synchronize do
+        s = @@sessions[id]
+        s.extend_expire_time if s
+      end
+
+      s
     end
 
     def initialize(project, timeout)
@@ -32,20 +53,20 @@ module RedmineMcpServer
 
       @status = STATE_NOT_INITIALIZE
 
-      @watcher = Thread.new do
-        sleep(1) while Time.now < @expired
-
-        finish
+      @@sessions.synchronize do
+        @@sessions[@id] = self
       end
 
-      @@sessions[@id] = self
       Rails.logger.info("Registered Session #{@id}.")
     end
 
     def finish
       @status = STATE_CLOSED
 
-      @@sessions.delete(@id)
+      @@sessions.synchronize do
+        @@sessions.delete(@id)
+      end
+
       Rails.logger.info("Unregistered Session #{@id} (#{@expired}).")
     end
 
@@ -59,8 +80,6 @@ module RedmineMcpServer
     end
 
     def close
-      @watcher.kill
-
       finish
     end
 
