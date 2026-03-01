@@ -87,17 +87,37 @@ module RedmineMcpServer
       # TODO: verification
       case request[:method]
       when "initialize"
-        mcp_initialize(request[:id], request[:params][:protocolVersion], request[:params][:capabilities], request[:params][:clientInfo])
+        res = mcp_initialize(
+          request[:id],
+          request[:params][:protocolVersion],
+          request[:params][:capabilities],
+          request[:params][:clientInfo]
+        )
+        return :ok, res
+
       when "notifications/initialized"
         mcp_initialized
+        return :accepted, nil
+
       when "ping"
-        mcp_pong(request[:id])
+        res = mcp_pong(request[:id])
+        return :ok, res
+
       when "tools/list"
-        mcp_tools_list(request[:id])
+        res = mcp_tools_list(request[:id])
+        return :ok, res
+
       when "tools/call"
-        mcp_tools_call(request[:id], request[:params][:name], request[:params][:arguments])
+        res = mcp_tools_call(
+          request[:id],
+          request[:params][:name],
+          request[:params][:arguments]
+        )
+        return :ok, res
+
       else
-        Message.err_method_not_found(request[:id])
+        res = Message.err_method_not_found(request[:id])
+        return :not_found, res
       end
     end
 

@@ -47,9 +47,10 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(initialize_request)
+    status, data = s.handle(initialize_request)
 
     assert_equal s.status, RedmineMcpServer::Session::STATE_INITIALIZING
+    assert_equal status, :ok
     assert_equal data, {
       jsonrpc: "2.0",
       id: "1",
@@ -74,9 +75,11 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    s.handle({jsonrpc: "2.0", method: "notifications/initialized"})
+    status, data = s.handle({jsonrpc: "2.0", method: "notifications/initialized"})
 
     assert_equal s.status, RedmineMcpServer::Session::STATE_ACCEPTABLE
+    assert_equal status, :accepted
+    assert_nil data
   ensure
     s.close
   end
@@ -85,8 +88,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(RedmineMcpServer::Message.ping("1"))
+    status, data = s.handle(RedmineMcpServer::Message.ping("1"))
 
+    assert_equal status, :ok
     assert_equal data, {
       jsonrpc: "2.0",
       id: "1",
@@ -100,8 +104,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(tools_list_request)
+    status, data = s.handle(tools_list_request)
 
+    assert_equal status, :ok
     assert_equal data, RedmineMcpServer::Message.tools_list("2")
   ensure
     s.close
@@ -111,8 +116,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(tools_call_request)
+    status, data = s.handle(tools_call_request)
 
+    assert_equal status, :ok
     assert_not_nil data
   ensure
     s.close
@@ -122,8 +128,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(tools_call_request)
+    status, data = s.handle(tools_call_request)
 
+    assert_equal status, :ok
     assert_not_nil data
   ensure
     s.close
@@ -133,8 +140,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(list_wiki_pages_request)
+    status, data = s.handle(list_wiki_pages_request)
 
+    assert_equal status, :ok
     assert_not_nil data
   ensure
     s.close
@@ -144,8 +152,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(read_issue_request)
+    status, data = s.handle(read_issue_request)
 
+    assert_equal status, :ok
     assert_not_nil data
   ensure
     s.close
@@ -155,8 +164,9 @@ class SessionTest <  ActiveSupport::TestCase
     p = Project.first
     s = RedmineMcpServer::Session.new(p, 10)
 
-    data = s.handle(read_wiki_page_request)
+    status, data = s.handle(read_wiki_page_request)
 
+    assert_equal status, :ok
     assert_not_nil data
   ensure
     s.close

@@ -12,16 +12,16 @@ class McpController < ApplicationController
   before_action :find_or_create_session_by_header, only: [:handle, :terminate]
 
   def handle
-    res = @session.handle(@jsonrpc)
+    status, res = @session.handle(@jsonrpc)
 
     if @initialize
       response.headers['MCP-Session-Id'] = @session.id
     end
 
     if res
-      render_api(:ok, res)
+      render_api(status, res)
     else
-      render_api_head(:accepted)
+      render_api_head(status)
     end
   end
 
