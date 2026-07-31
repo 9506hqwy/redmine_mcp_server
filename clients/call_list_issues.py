@@ -9,10 +9,11 @@ from mcp.client.streamable_http import streamable_http_client
 
 
 async def main():
-    async with streamable_http_client("http://127.0.0.1:3000/projects/test-project/mcp") as (
+    async with streamable_http_client(
+        "http://127.0.0.1:3000/projects/test-project/mcp"
+    ) as (
         read,
         write,
-        _,
     ):
         async with ClientSession(read, write) as session:
             await session.initialize()
