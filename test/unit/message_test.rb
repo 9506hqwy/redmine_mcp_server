@@ -3,11 +3,6 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class MessageTest <  ActiveSupport::TestCase
-  def test_request
-    req = RedmineMcpServer::Message.request("method")
-    assert_equal req, { jsonrpc: "2.0", method: "method" }
-  end
-
   def test_response
     req = RedmineMcpServer::Message.response("1")
     assert_equal req, { jsonrpc: "2.0", id: "1" }
@@ -33,32 +28,43 @@ class MessageTest <  ActiveSupport::TestCase
     assert_equal req, { jsonrpc: "2.0", id: 3, error: { code: 0, message: "Generic error" } }
   end
 
-  def test_ping
-    req = RedmineMcpServer::Message.ping("1")
-    assert_equal req, { jsonrpc: "2.0", method: "ping", id: "1" }
+  def test_err_unsupported_protocol_version
+    req = RedmineMcpServer::Message.err_unsupported_protocol_version(4, "1.0")
+    assert_equal req, {
+      jsonrpc: "2.0",
+      id: 4,
+      error: {
+        code: -32022,
+        message: "Unsupported protocol version",
+        data: {
+          supported: ["2026-07-28"],
+          requested: "1.0"
+        }
+      }
+    }
   end
 
-  def test_pong
-    req = RedmineMcpServer::Message.pong("1")
-    assert_equal req, { jsonrpc: "2.0", id: "1", result: {} }
-  end
-
-  def test_initialize_result
-    req = RedmineMcpServer::Message.initialize_result("1", "1.0")
+  def test_server_discover
+    req = RedmineMcpServer::Message.server_discover("1")
     assert_equal req, {
       jsonrpc: "2.0",
       id: "1",
       result: {
-        protocolVersion: "1.0",
+        _meta: {
+          'io.modelcontextprotocol/serverInfo': {
+            name: "RedmineMcpServer",
+            version: "0.3.0",
+          },
+        },
+        resultType: "complete",
+        supportedVersions: ["2026-07-28"],
         capabilities: {
           tools: {
             listChanged: false,
           },
         },
-        serverInfo: {
-          name: "RedmineMcpServer",
-          version: "0.3.0",
-        }
+        ttlMs: 1000,
+        cacheScope: "public",
       }
     }
   end
@@ -69,6 +75,16 @@ class MessageTest <  ActiveSupport::TestCase
       jsonrpc: "2.0",
       id: "1",
       result: {
+        _meta: {
+          'io.modelcontextprotocol/serverInfo': {
+            name: "RedmineMcpServer",
+            version: "0.3.0",
+          },
+        },
+        resultType: "complete",
+        nextCursor: nil,
+        ttlMs: 1000,
+        cacheScope: "public",
         tools: [
           {
             name: "list_issues",
@@ -112,8 +128,7 @@ class MessageTest <  ActiveSupport::TestCase
               required: ["id"],
             },
           },
-        ],
-        nextCursor: nil,
+        ]
       }
     }
   end
@@ -124,6 +139,13 @@ class MessageTest <  ActiveSupport::TestCase
       jsonrpc: "2.0",
       id: "1",
       result: {
+        _meta: {
+          'io.modelcontextprotocol/serverInfo': {
+            name: "RedmineMcpServer",
+            version: "0.3.0",
+          },
+        },
+        resultType: "complete",
         content: [
           {
             type: "text",

@@ -9,14 +9,10 @@ module RedmineMcpServer
     JSONRPC_ERR_INVALID_PARAMS = -32602
     JSONRPC_ERR_INTERNAL = -32603
     JSONRPC_ERR_GENERIC = 0
-    PROTOCOL_VERSION = "2025-11-25"
-
-    def self.request(method)
-      {
-        jsonrpc: JSONRPC_VERSION,
-        method: method,
-      }
-    end
+    MPC_ERR_HEADER_MISMATCH = -32020
+    MCP_ERR_MISSING_REQUIRED_CLIENT_CAPABILITY = -32021
+    MCP_ERR_UNSUPPORTED_PROTOCOL_VERSION = -32022
+    PROTOCOL_VERSION = "2026-07-28"
 
     def self.response(id)
       {
@@ -62,26 +58,27 @@ module RedmineMcpServer
       self.error(id, JSONRPC_ERR_GENERIC, "Generic error", nil)
     end
 
-    def self.ping(id)
-      request("ping").merge!({id: id})
+    def self.err_unsupported_protocol_version(id, requested)
+      support_versions = [PROTOCOL_VERSION]
+      data = {
+        supported: support_versions,
+        requested: requested,
+      }
+      self.error(id, MCP_ERR_UNSUPPORTED_PROTOCOL_VERSION, "Unsupported protocol version", data)
     end
 
-    def self.pong(id)
-      response(id).merge!({result: {}})
-    end
-
-    def self.initialize_result(id, protocol_version)
+    def self.server_discover(id)
       result = {
-        protocolVersion: protocol_version,
+        _meta: self._meta,
+        resultType: "complete",
+        supportedVersions: [PROTOCOL_VERSION],
         capabilities: {
           tools: {
             listChanged: false,
-          }
+          },
         },
-        serverInfo: {
-          name: "RedmineMcpServer",
-          version: "0.3.0"
-        }
+        ttlMs: 1000,
+        cacheScope: "public",
       }
 
       response(id).merge!({result: result})
@@ -135,8 +132,12 @@ module RedmineMcpServer
       }
 
       result = {
-        tools: [list_issues, list_wiki_pages, read_issue, read_wiki_page],
+        _meta: self._meta,
+        resultType: "complete",
         nextCursor: nil,
+        ttlMs: 1000,
+        cacheScope: "public",
+        tools: [list_issues, list_wiki_pages, read_issue, read_wiki_page],
       }
 
       response(id).merge!({result: result})
@@ -148,10 +149,21 @@ module RedmineMcpServer
       end
 
       result = {
-        content: content
+        _meta: self._meta,
+        resultType: "complete",
+        content: content,
       }
 
       response(id).merge!({result: result})
+    end
+
+    def self._meta
+      {
+        'io.modelcontextprotocol/serverInfo': {
+          name: "RedmineMcpServer",
+          version: "0.3.0"
+        }
+      }
     end
   end
 end

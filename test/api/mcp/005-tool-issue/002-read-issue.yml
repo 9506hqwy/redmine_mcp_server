@@ -7,8 +7,10 @@ http:
   method: POST
   url: "{{targetUrl}}"
   headers:
-    - name: MCP-Session-ID
-      value: "{{sessionId}}"
+    - name: MCP-Method
+      value: tools/call
+    - name: MCP-Name
+      value: read_issue
   body:
     type: json
     data: |-
@@ -17,6 +19,10 @@ http:
         "id": 2,
         "method": "tools/call",
         "params": {
+          "_meta": {
+            "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+            "io.modelcontextprotocol/clientCapabilities": {}
+          },
           "name": "read_issue",
           "arguments": {
             "id": {{issueId}}

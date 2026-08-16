@@ -1,106 +1,44 @@
 # frozen_string_literal: true
 
 require 'json'
-require 'monitor'
-require 'securerandom'
 
 module RedmineMcpServer
   class Session
     include Rails.application.routes.url_helpers
 
-    # rubocop:disable Style/ClassVars
-    @@sessions = {}
-    @@sessions.extend(MonitorMixin)
-
-    @@watcher = Thread.new do
-      loop do
-        sleep(1)
-
-        @@sessions.synchronize do
-          @@sessions.each_value do |s|
-            s.finish if s.expired < Time.now
-          end
-        end
-      end
-    end
-    # rubocop:enable Style/ClassVars
-
-    STATE_NOT_INITIALIZE = 0
-    STATE_INITIALIZING = 1
-    STATE_ACCEPTABLE = 2
-    STATE_CLOSED = 3
-
-    attr_reader :id, :status, :expired
-
-    def self.get(id)
-      s = nil
-
-      @@sessions.synchronize do
-        s = @@sessions[id]
-        s.extend_expire_time if s
-      end
-
-      s
-    end
-
-    def initialize(project, timeout)
-      super()
-      @id = SecureRandom.uuid
+    def initialize(project)
       @project = project
+    end
 
-      @timeout = timeout
-      @expired = expire_time(@timeout)
+    def handle(request, headers)
+      Rails.logger.info(headers)
 
-      @status = STATE_NOT_INITIALIZE
+      metadata = request[:params][:_meta]
+      protocol_version = metadata[:'io.modelcontextprotocol/protocolVersion']
+      capabilities = metadata[:'io.modelcontextprotocol/clientCapabilities']
+      client_info = metadata[:'io.modelcontextprotocol/clientInfo']
+      Rails.logger.info(capabilities)
+      Rails.logger.info(client_info)
 
-      @@sessions.synchronize do
-        @@sessions[@id] = self
+      if headers[:protocol_version] != protocol_version
+        res = Message.err_invalid_request(request[:id])
+        return :bad_request, res
       end
 
-      Rails.logger.info("Registered Session #{@id}.")
-    end
-
-    def finish
-      @status = STATE_CLOSED
-
-      @@sessions.synchronize do
-        @@sessions.delete(@id)
+      if headers[:method] != request[:method]
+        res = Message.err_invalid_request(request[:id])
+        return :bad_request, res
       end
 
-      Rails.logger.info("Unregistered Session #{@id} (#{@expired}).")
-    end
+      if protocol_version != Message::PROTOCOL_VERSION
+        res = Message.err_unsupported_protocol_version(request[:id], protocol_version)
+        return :bad_request, res
+      end
 
-    def extend_expire_time
-      @expired = expire_time(@timeout)
-      Rails.logger.info("Extended Session #{@id} (#{@expired}).")
-    end
-
-    def expire_time(sec)
-      Time.now + sec
-    end
-
-    def close
-      finish
-    end
-
-    def handle(request)
       # TODO: verification
       case request[:method]
-      when "initialize"
-        res = mcp_initialize(
-          request[:id],
-          request[:params][:protocolVersion],
-          request[:params][:capabilities],
-          request[:params][:clientInfo]
-        )
-        return :ok, res
-
-      when "notifications/initialized"
-        mcp_initialized
-        return :accepted, nil
-
-      when "ping"
-        res = mcp_pong(request[:id])
+      when "server/discover"
+        res = mcp_server_discover(request[:id])
         return :ok, res
 
       when "tools/list"
@@ -108,6 +46,11 @@ module RedmineMcpServer
         return :ok, res
 
       when "tools/call"
+        if headers[:name] != request[:params][:name]
+          res = Message.err_invalid_request(request[:id])
+          return :bad_request, res
+        end
+
         res = mcp_tools_call(
           request[:id],
           request[:params][:name],
@@ -121,22 +64,8 @@ module RedmineMcpServer
       end
     end
 
-    def mcp_initialize(id, protocol_version, capabilities, client_info)
-      @status = STATE_INITIALIZING
-
-      Rails.logger.info(capabilities)
-      Rails.logger.info(client_info)
-
-      Message.initialize_result(id, protocol_version)
-    end
-
-    def mcp_initialized
-      @status = STATE_ACCEPTABLE
-      return
-    end
-
-    def mcp_pong(id)
-      Message.pong(id)
+    def mcp_server_discover(id)
+      Message.server_discover(id)
     end
 
     def mcp_tools_list(id)

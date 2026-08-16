@@ -9,9 +9,7 @@ from mcp import Client
 
 async def main():
     async with Client("http://127.0.0.1:3000/projects/test-project/mcp") as client:
-        res = await client.list_tools()
-        for tool in res.tools:
-            print(tool)
+        print(client.protocol_version)
 
 
 if __name__ == "__main__":

@@ -7,8 +7,8 @@ http:
   method: POST
   url: "{{targetUrl}}"
   headers:
-    - name: MCP-Session-ID
-      value: "{{sessionId}}"
+    - name: MCP-Method
+      value: unknown
   body:
     type: json
     data: |-

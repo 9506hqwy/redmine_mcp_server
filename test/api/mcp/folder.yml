@@ -9,11 +9,11 @@ request:
       value: application/json
     - name: Content-Type
       value: application/json
+    - name: MCP-Protocol-Version
+      value: 2026-07-28
   auth: inherit
   variables:
     - name: projectId
       value: test-project
     - name: targetUrl
       value: http://{{serverName}}:{{serverPort}}/projects/{{projectId}}/mcp
-    - name: sessionId
-      value:

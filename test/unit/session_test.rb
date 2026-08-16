@@ -22,183 +22,104 @@ class SessionTest <  ActiveSupport::TestCase
            :wiki_pages,
            :wikis
 
-  def test_initialize_close
+  def test_handle_server_discover
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    assert_not_nil s.id
-    assert_equal s.status, RedmineMcpServer::Session::STATE_NOT_INITIALIZE
-  ensure
-    s.close
-  end
-
-  def test_initialize_timedout
-    p = Project.first
-    s = RedmineMcpServer::Session.new(p, 0.3)
-
-    sleep(2)
-
-    assert_equal s.status, RedmineMcpServer::Session::STATE_CLOSED
-  ensure
-    s.close
-  end
-
-  def test_handle_initialize
-    p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
-
-    status, data = s.handle(initialize_request)
-
-    assert_equal s.status, RedmineMcpServer::Session::STATE_INITIALIZING
-    assert_equal status, :ok
-    assert_equal data, {
-      jsonrpc: "2.0",
-      id: "1",
-      result: {
-        protocolVersion: "1.0",
-        capabilities: {
-          tools: {
-            listChanged: false,
-          },
-        },
-        serverInfo: {
-          name: "RedmineMcpServer",
-          version: "0.3.0",
-        }
-      }
-    }
-  ensure
-    s.close
-  end
-
-  def test_handle_initialized
-    p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
-
-    status, data = s.handle({jsonrpc: "2.0", method: "notifications/initialized"})
-
-    assert_equal s.status, RedmineMcpServer::Session::STATE_ACCEPTABLE
-    assert_equal status, :accepted
-    assert_nil data
-  ensure
-    s.close
-  end
-
-  def test_handle_pong
-    p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
-
-    status, data = s.handle(RedmineMcpServer::Message.ping("1"))
+    status, data = s.handle(server_discover_request, _headers("server/discover", nil))
 
     assert_equal status, :ok
-    assert_equal data, {
-      jsonrpc: "2.0",
-      id: "1",
-      result: {},
-    }
-  ensure
-    s.close
+    assert_equal data, RedmineMcpServer::Message.server_discover("1")
   end
 
   def test_handle_tools_list
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    status, data = s.handle(tools_list_request)
+    status, data = s.handle(tools_list_request, _headers("tools/list", nil))
 
     assert_equal status, :ok
     assert_equal data, RedmineMcpServer::Message.tools_list("2")
-  ensure
-    s.close
   end
 
   def test_handle_tools_call
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    status, data = s.handle(tools_call_request)
+    status, data = s.handle(tools_call_request, _headers("tools/call", "list_issues"))
 
     assert_equal status, :ok
     assert_not_nil data
-  ensure
-    s.close
   end
 
   def test_mcp_tools_call_list_issues
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    status, data = s.handle(tools_call_request)
+    status, data = s.handle(tools_call_request, _headers("tools/call", "list_issues"))
 
     assert_equal status, :ok
     assert_not_nil data
-  ensure
-    s.close
   end
 
   def test_mcp_tools_call_list_wiki_pages
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    status, data = s.handle(list_wiki_pages_request)
+    status, data = s.handle(list_wiki_pages_request, _headers("tools/call", "list_wiki_pages"))
 
     assert_equal status, :ok
     assert_not_nil data
-  ensure
-    s.close
   end
 
   def test_mcp_tools_call_read_issue
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    status, data = s.handle(read_issue_request)
+    status, data = s.handle(read_issue_request, _headers("tools/call", "read_issue"))
 
     assert_equal status, :ok
     assert_not_nil data
-  ensure
-    s.close
   end
 
   def test_mcp_tools_call_read_wiki_page
     p = Project.first
-    s = RedmineMcpServer::Session.new(p, 10)
+    s = RedmineMcpServer::Session.new(p)
 
-    status, data = s.handle(read_wiki_page_request)
+    status, data = s.handle(read_wiki_page_request, _headers("tools/call", "read_wiki_page"))
 
     assert_equal status, :ok
     assert_not_nil data
-  ensure
-    s.close
   end
 
-  def initialize_request
-    RedmineMcpServer::Message.request("initialize").merge!(
+  def server_discover_request
+    _request("server/discover").merge!(
       {
         id: "1",
         params: {
-          protocolVersion: "1.0",
-          capabilities: {},
-          clientInfo: {},
+          _meta: _meta,
         },
       }
     )
   end
 
   def tools_list_request
-    RedmineMcpServer::Message.request("tools/list").merge!(
+    _request("tools/list").merge!(
       {
         id: "2",
-        params: {},
+        params: {
+          _meta: _meta,
+        },
       }
     )
   end
 
   def tools_call_request
-    RedmineMcpServer::Message.request("tools/call").merge!(
+    _request("tools/call").merge!(
       {
         id: "3",
         params: {
+          _meta: _meta,
           name: "list_issues",
         },
       }
@@ -206,10 +127,11 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def list_wiki_pages_request
-    RedmineMcpServer::Message.request("tools/call").merge!(
+    _request("tools/call").merge!(
       {
         id: "3",
         params: {
+          _meta: _meta,
           name: "list_wiki_pages",
         },
       }
@@ -217,10 +139,11 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def read_issue_request
-    RedmineMcpServer::Message.request("tools/call").merge!(
+    _request("tools/call").merge!(
       {
         id: "3",
         params: {
+          _meta: _meta,
           name: "read_issue",
           arguments: {
             id: 1
@@ -231,10 +154,11 @@ class SessionTest <  ActiveSupport::TestCase
   end
 
   def read_wiki_page_request
-    RedmineMcpServer::Message.request("tools/call").merge!(
+    _request("tools/call").merge!(
       {
         id: "3",
         params: {
+          _meta: _meta,
           name: "read_wiki_page",
           arguments: {
             id: 1
@@ -242,5 +166,27 @@ class SessionTest <  ActiveSupport::TestCase
         },
       }
     )
+  end
+
+  def _request(method)
+    {
+      jsonrpc: RedmineMcpServer::Message::JSONRPC_VERSION,
+      method: method,
+    }
+  end
+
+  def _headers(method, name)
+    {
+      protocol_version: RedmineMcpServer::Message::PROTOCOL_VERSION,
+      method: method,
+      name: name
+    }
+  end
+
+  def _meta
+    {
+      'io.modelcontextprotocol/protocolVersion': RedmineMcpServer::Message::PROTOCOL_VERSION,
+      'io.modelcontextprotocol/clientCapabilities': {},
+    }
   end
 end

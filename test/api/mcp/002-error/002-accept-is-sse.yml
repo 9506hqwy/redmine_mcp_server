@@ -9,8 +9,8 @@ http:
   headers:
     - name: Accept
       value: text/event-stream
-    - name: MCP-Session-ID
-      value: "{{sessionId}}"
+    - name: Mcp-Method
+      value: tools/list
   body:
     type: json
     data: |-

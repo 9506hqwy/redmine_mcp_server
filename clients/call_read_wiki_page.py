@@ -1,38 +1,21 @@
 #!/usr/bin/env python3
 # /// script
-# dependencies = ["mcp"]
+# dependencies = ["mcp>=2"]
 # requires-python = ">=3.11"
 # ///
 
 import json
 
-from mcp import ClientSession
-from mcp.client.streamable_http import streamable_http_client
+from mcp import Client
 
 
 async def main():
-    async with streamable_http_client(
-        "http://127.0.0.1:3000/projects/test-project/mcp"
-    ) as (
-        read,
-        write,
-    ):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
+    async with Client("http://127.0.0.1:3000/projects/test-project/mcp") as client:
+        res = await client.call_tool("list_wiki_pages")
+        page = json.loads(res.content[0].text)
 
-            res = await session.list_tools()
-            list_wiki_pages = (
-                t for t in res.tools if t.name == "list_wiki_pages"
-            ).__next__()
-            read_wiki_page = (
-                t for t in res.tools if t.name == "read_wiki_page"
-            ).__next__()
-
-            res = await session.call_tool(list_wiki_pages.name)
-            page = json.loads(res.content[0].text)
-
-            res = await session.call_tool(read_wiki_page.name, {"id": page["id"]})
-            print(res.content[0].text)
+        res = await client.call_tool("read_wiki_page", {"id": page["id"]})
+        print(res.content[0].text)
 
 
 if __name__ == "__main__":

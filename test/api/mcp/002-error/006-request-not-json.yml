@@ -6,9 +6,6 @@ info:
 http:
   method: POST
   url: "{{targetUrl}}"
-  headers:
-    - name: MCP-Session-ID
-      value: "{{sessionId}}"
   body:
     type: text
     data: a

@@ -1,5 +1,5 @@
 info:
-  name: 001-ping
+  name: 001-list-tools
   type: http
   seq: 1
 
@@ -7,8 +7,8 @@ http:
   method: POST
   url: "{{targetUrl}}"
   headers:
-    - name: MCP-Session-ID
-      value: "{{sessionId}}"
+    - name: MCP-Method
+      value: tools/list
   body:
     type: json
     data: |-

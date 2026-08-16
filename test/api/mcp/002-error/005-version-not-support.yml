@@ -7,17 +7,22 @@ http:
   method: POST
   url: "{{targetUrl}}"
   headers:
-    - name: MCP-Session-ID
-      value: "{{sessionId}}"
     - name: MCP-Protocol-Version
       value: 0000-00-00
+    - name: MCP-Method
+      value: tools/list
   body:
     type: json
     data: |-
       {
         "jsonrpc": "2.0",
         "id": 1,
-        "method": "tools/list"
+        "method": "tools/list",
+        "params": {
+          "_meta": {
+            "io.modelcontextprotocol/protocolVersion": "0000-00-00"
+          }
+        }
       }
   auth: inherit
 
@@ -26,8 +31,12 @@ runtime:
     - expression: res.status
       operator: eq
       value: "400"
-    - expression: res.body
-      operator: isEmpty
+    - expression: res.body.id
+      operator: eq
+      value: 1
+    - expression: res.body.error.code
+      operator: eq
+      value: "-32022"
 
 settings:
   encodeUrl: true
