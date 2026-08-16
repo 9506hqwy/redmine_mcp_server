@@ -12,6 +12,7 @@ on:
       - '.lefthook.yml'
       - 'LICENSE'
       - 'README.md'
+      - 'taskfile.yml'
   pull_request:
 
 permissions:

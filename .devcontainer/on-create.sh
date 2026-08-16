@@ -49,6 +49,9 @@ curl -fsSL -o - "https://github.com/evilmartians/lefthook/releases/download/${LE
     gzip -c -d > ~/.local/bin/lefthook
 chmod +x ~/.local/bin/lefthook
 
+# Install task
+sh -c "$(curl -fsSL https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+
 # Install yq
 YQ_URL="https://api.github.com/repos/mikefarah/yq/releases?per_page=1"
 YQ_VERSION=$(curl -fsSL -H "${GITHUB_HEADER_ACCEPT}" -H "${GITHUB_HEADER_VERSION}" "${YQ_URL}" | jq -r '.[0].tag_name')

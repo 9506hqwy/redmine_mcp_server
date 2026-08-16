@@ -1,0 +1,58 @@
+version: '3'
+
+tasks:
+  format-js:
+    cmds:
+      - npm run format
+
+  lint-js:
+    cmds:
+      - npm run lint
+
+  lint-rb:
+    requires:
+      vars:
+        - name: VERSION
+          enum: [5.0]
+    cmds:
+      - |
+        mapfile -t FILES < <(find -L "plugins/${PLUGIN_NAME}" -name '*.rb')
+        bundle exec rubocop "${FILES[@]}"
+    dir: /usr/src/redmine/{{.VERSION}}
+
+  test-setup:
+    requires:
+      vars:
+        - name: VERSION
+          enum: [5.1, 6.0, 6.1, 7.0]
+    cmds:
+      - bundle exec rails about
+      - RAILS_ENV=test bundle exec rake db:drop
+      - RAILS_ENV=test bundle exec rake db:create db:migrate redmine:plugins:migrate
+      - echo ja | RAILS_ENV=test bundle exec rake redmine:load_default_data
+    dir: /usr/src/redmine/{{.VERSION}}
+
+  test-exec:
+    requires:
+      vars:
+        - name: VERSION
+          enum: [5.1, 6.0, 6.1, 7.0]
+    cmds:
+      - bundle exec rails about
+      - RAILS_ENV=test bundle exec rake test TEST="plugins/${PLUGIN_NAME}/test/**/*_test.rb"
+    dir: /usr/src/redmine/{{.VERSION}}
+
+  e2e-setup:
+    cmds:
+      - npx playwright test --reporter list --workers 1 --project "initialize"
+
+  e2e-exec:
+    cmds:
+      - npx playwright test --reporter list --workers 1 --project "chromium test"
+      - npx playwright test --reporter list --workers 1 --project "firefox test"
+      - npx playwright test --reporter list --workers 1 --project "webkit test"
+
+  api-exec:
+    cmds:
+      - bru run --reporter-html report.html
+    dir: '{{.TASKFILE_DIR}}/test/api'

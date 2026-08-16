@@ -1,11 +1,17 @@
 pre-commit:
   jobs:
     - name: Js Format
-      glob: "*.js"
+      glob:
+        - "*.css"
+        - "*.js"
+        - "*.ts"
       run: npm run format
 
     - name: Js Lint
-      glob: "*.js"
+      glob:
+        - "*.css"
+        - "*.js"
+        - "*.ts"
       run: npm run lint
 
     - name: Actions Lint

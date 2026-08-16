@@ -7,6 +7,8 @@
     },
     "files": {
         "includes": [
+            "assets/**/*.css",
+            "assets/**/*.js",
             "src/**/*.css",
             "src/**/*.js",
             "src/**/*.ts",

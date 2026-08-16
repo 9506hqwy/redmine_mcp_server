@@ -6,6 +6,7 @@
         "github.vscode-github-actions",
         "koichisasada.vscode-rdbg",
         "shopify.ruby-lsp",
+        "task.vscode-task",
         "timonwong.shellcheck",
         "yzhang.markdown-all-in-one"
     ]
