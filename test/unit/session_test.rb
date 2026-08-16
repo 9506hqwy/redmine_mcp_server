@@ -63,7 +63,7 @@ class SessionTest <  ActiveSupport::TestCase
         },
         serverInfo: {
           name: "RedmineMcpServer",
-          version: "0.1.0",
+          version: "0.3.0",
         }
       }
     }
