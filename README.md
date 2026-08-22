@@ -33,12 +33,14 @@ see [clients](./clients) directory.
 ## Tested Environment
 
 - Redmine (Docker Image)
+  - 5.0
+  - 5.1
   - 6.0
   - 6.1
   - 7.0
 - Database
   - SQLite
-  - MySQL 8.0
+  - MySQL 5.7 or 8.0
   - PostgreSQL 14
 
 ## References
