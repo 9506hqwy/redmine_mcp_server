@@ -6,7 +6,6 @@ This plugin provides a Model Context Protocol server using Streamable HTTP.
 
 - This plugin is concept and experimental.
 - This plugin uses protocol version 2026-07-28.
-- HTTP endpoint does not have authenticate.
 - Not support Server Sent Events (`Accept: text/event-stream`).
 
 ## Features
