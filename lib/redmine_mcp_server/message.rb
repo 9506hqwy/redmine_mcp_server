@@ -84,7 +84,7 @@ module RedmineMcpServer
       response(id).merge!({result: result})
     end
 
-    def self.tools_list(id)
+    def self.tools_list(id, project)
       list_issues = {
         name: "list_issues",
         description: "List all issues in project.",
@@ -131,13 +131,25 @@ module RedmineMcpServer
         }
       }
 
+      tools = []
+
+      if User.current.allowed_to?(:view_issues, project)
+        tools.push(list_issues)
+        tools.push(read_issue)
+      end
+
+      if User.current.allowed_to?(:view_wiki_pages, project)
+        tools.push(list_wiki_pages)
+        tools.push(read_wiki_page)
+      end
+
       result = {
         _meta: self._meta,
         resultType: "complete",
         nextCursor: nil,
         ttlMs: 1000,
         cacheScope: "public",
-        tools: [list_issues, list_wiki_pages, read_issue, read_wiki_page],
+        tools: tools,
       }
 
       response(id).merge!({result: result})

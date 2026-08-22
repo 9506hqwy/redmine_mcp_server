@@ -39,7 +39,7 @@ class SessionTest <  ActiveSupport::TestCase
     status, data = s.handle(tools_list_request, _headers("tools/list", nil))
 
     assert_equal status, :ok
-    assert_equal data, RedmineMcpServer::Message.tools_list("2")
+    assert_equal data, RedmineMcpServer::Message.tools_list("2", p)
   end
 
   def test_handle_tools_call

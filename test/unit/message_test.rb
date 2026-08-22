@@ -3,6 +3,22 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class MessageTest <  ActiveSupport::TestCase
+  fixtures :enumerations,
+           :issues,
+           :issue_statuses,
+           :member_roles,
+           :members,
+           :projects,
+           :projects_trackers,
+           :roles,
+           :users,
+           :trackers,
+           :versions,
+           :wiki_content_versions,
+           :wiki_contents,
+           :wiki_pages,
+           :wikis
+
   def test_response
     req = RedmineMcpServer::Message.response("1")
     assert_equal req, { jsonrpc: "2.0", id: "1" }
@@ -70,7 +86,9 @@ class MessageTest <  ActiveSupport::TestCase
   end
 
   def test_tools_list
-    req = RedmineMcpServer::Message.tools_list("1")
+    p = Project.first
+
+    req = RedmineMcpServer::Message.tools_list("1", p)
     assert_equal req, {
       jsonrpc: "2.0",
       id: "1",
@@ -94,13 +112,6 @@ class MessageTest <  ActiveSupport::TestCase
             },
           },
           {
-            name: "list_wiki_pages",
-            description: "List all wiki pages in project.",
-            inputSchema: {
-              type: "object",
-            },
-          },
-          {
             name: "read_issue",
             description: "Read issue in project.",
             inputSchema: {
@@ -112,6 +123,13 @@ class MessageTest <  ActiveSupport::TestCase
                 },
               },
               required: ["id"],
+            },
+          },
+          {
+            name: "list_wiki_pages",
+            description: "List all wiki pages in project.",
+            inputSchema: {
+              type: "object",
             },
           },
           {

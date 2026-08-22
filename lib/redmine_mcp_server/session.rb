@@ -51,12 +51,11 @@ module RedmineMcpServer
           return :bad_request, res
         end
 
-        res = mcp_tools_call(
+        return mcp_tools_call(
           request[:id],
           request[:params][:name],
           request[:params][:arguments]
         )
-        return :ok, res
 
       else
         res = Message.err_method_not_found(request[:id])
@@ -69,24 +68,34 @@ module RedmineMcpServer
     end
 
     def mcp_tools_list(id)
-      Message.tools_list(id)
+      Message.tools_list(id, @project)
     end
 
     def mcp_tools_call(id, name, arguments)
       case name
       when "list_issues"
-        issues = call_list_issues
-        Message.call_tool_text_results(id, issues)
+        if User.current.allowed_to?(:view_issues, @project)
+          issues = call_list_issues
+          return :ok, Message.call_tool_text_results(id, issues)
+        end
       when "list_wiki_pages"
-        pages = list_wiki_pages
-        Message.call_tool_text_results(id, pages)
+        if User.current.allowed_to?(:view_wiki_pages, @project)
+          pages = list_wiki_pages
+          return :ok, Message.call_tool_text_results(id, pages)
+        end
       when "read_issue"
-        issue = call_read_issue(arguments[:id])
-        Message.call_tool_text_results(id, [issue])
+        if User.current.allowed_to?(:view_issues, @project)
+          issue = call_read_issue(arguments[:id])
+          return :ok, Message.call_tool_text_results(id, [issue])
+        end
       when "read_wiki_page"
-        page = call_read_wiki_page(arguments[:id])
-        Message.call_tool_text_results(id, [page])
+        if User.current.allowed_to?(:view_wiki_pages, @project)
+          page = call_read_wiki_page(arguments[:id])
+          return :ok, Message.call_tool_text_results(id, [page])
+        end
       end
+
+      return :not_found, Message.err_method_not_found(id)
     end
 
     def call_list_issues
