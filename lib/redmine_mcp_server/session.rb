@@ -99,7 +99,7 @@ module RedmineMcpServer
     end
 
     def call_list_issues
-      Issue.where(project: @project).map do |issue|
+      Issue.visible.where(project: @project).map do |issue|
         JSON.dump({
                     id: issue.id,
                     subject: issue.subject,
@@ -121,7 +121,7 @@ module RedmineMcpServer
     end
 
     def call_read_issue(id)
-      issue = Issue.where(id: id, project: @project).first
+      issue = Issue.visible.where(id: id, project: @project).first
       JSON.dump(
         {
           id: issue.id,
