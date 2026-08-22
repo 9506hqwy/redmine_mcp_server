@@ -18,4 +18,8 @@ Redmine::Plugin.register :redmine_mcp_server do
   version '0.3.0'
   url 'https://github.com/9506hqwy/redmine_mcp_server'
   author_url 'https://github.com/9506hqwy'
+
+  project_module :mcp_server do
+    permission :post_msp_server, {mcp: [:handle]}
+  end
 end

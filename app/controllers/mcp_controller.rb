@@ -7,8 +7,11 @@ class McpController < ApplicationController
 
   before_action :valid_accept_header,
                 :find_mcp_headers,
-                :find_project_by_project_id
-  before_action :parse_jsonrpc_request, only: :handle
+                :find_project_by_project_id,
+                :parse_jsonrpc_request,
+                :authorize
+
+  accept_api_auth :handle
 
   def handle
     session = RedmineMcpServer::Session.new(@project)

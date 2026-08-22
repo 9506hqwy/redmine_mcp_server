@@ -26,6 +26,20 @@ This plugin provides a Model Context Protocol server using Streamable HTTP.
 
 2. Start Redmine
 
+## Configuration
+
+1. Enable plugin module.
+
+   Check [MCP Server] in project setting.
+
+2. Customize permission.
+
+   Check [Post MCP message] in role and permission.
+
+3. Set API Key
+
+   Create API key and set to HTTP request using `X-Redmine-API-Key` header or `key` query parameter.
+
 ## Exampls
 
 see [clients](./clients) directory.

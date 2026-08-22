@@ -5,12 +5,16 @@
 # ///
 
 import json
+import os
 
 from mcp import Client
 
 
 async def main():
-    async with Client("http://127.0.0.1:3000/projects/test-project/mcp") as client:
+    api_key = os.getenv("REDMINE_API_KEY")
+    async with Client(
+        f"http://127.0.0.1:3000/projects/test-project/mcp?key={api_key}"
+    ) as client:
         res = await client.call_tool("list_wiki_pages")
         page = json.loads(res.content[0].text)
 

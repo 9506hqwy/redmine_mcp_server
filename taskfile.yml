@@ -54,5 +54,5 @@ tasks:
 
   api-exec:
     cmds:
-      - bru run --reporter-html report.html
+      - bru run --reporter-html report.html --reporter-skip-headers "X-Redmine-API-Key"
     dir: '{{.TASKFILE_DIR}}/test/api'
