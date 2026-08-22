@@ -6,7 +6,8 @@ require "json"
 require File.expand_path('../../test_helper', __FILE__)
 
 class SessionTest <  ActiveSupport::TestCase
-  fixtures :enumerations,
+  fixtures :enabled_modules,
+           :enumerations,
            :issues,
            :issue_statuses,
            :member_roles,

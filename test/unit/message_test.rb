@@ -3,7 +3,8 @@
 require File.expand_path('../../test_helper', __FILE__)
 
 class MessageTest <  ActiveSupport::TestCase
-  fixtures :enumerations,
+  fixtures :enabled_modules,
+           :enumerations,
            :issues,
            :issue_statuses,
            :member_roles,
